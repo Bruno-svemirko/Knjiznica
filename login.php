@@ -33,7 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Prijava</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
-        /* Centriranje sadržaja */
         .content-container {
             max-width: 500px;
             margin: 0 auto;

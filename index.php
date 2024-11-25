@@ -2,16 +2,24 @@
 require 'auth.php';
 checkAuth();
 
-if ($_SESSION['user']['uloga'] === 'autor' && isset($_GET['deaktiviraj_racun'])) {
+if (isset($_GET['deaktiviraj_racun'])) {
     require 'db.php';
 
-    $stmt = $pdo->prepare('UPDATE korisnici SET aktivan = FALSE WHERE id = ?');
-    $stmt->execute([$_SESSION['user']['id']]);
+    $userId = $_GET['id'] ?? $_SESSION['user']['id']; 
 
-    session_unset();
-    session_destroy();
-    header('Location: login.php');
-    exit;
+    // Deaktivacija računa (tako za autora, tako i za administratora)
+    if (($userId == $_SESSION['user']['id']) && ($_SESSION['user']['uloga'] === 'autor' || $_SESSION['user']['uloga'] === 'administrator')) {
+        $stmt = $pdo->prepare('UPDATE korisnici SET aktivan = FALSE WHERE id = ?');
+        $stmt->execute([$userId]);
+
+        // Uništavanje sesije
+        session_unset();
+        session_destroy();
+        
+        // Ako je korisnik administrator, preusmjeravamo ga na login
+        header('Location: login.php');
+        exit;
+    }
 }
 ?>
 
@@ -22,7 +30,6 @@ if ($_SESSION['user']['uloga'] === 'autor' && isset($_GET['deaktiviraj_racun']))
     <title>Dobrodošli</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
-        /* Centriranje sadržaja */
         .content-container {
             max-width: 600px;
             margin: 0 auto;
@@ -72,15 +79,24 @@ if ($_SESSION['user']['uloga'] === 'autor' && isset($_GET['deaktiviraj_racun']))
                     <li class="list-group-item">
                         <a href="knjige.php">Knjige</a>
                     </li>
-                    <?php if (isAdmin()) : ?>
+                    <?php if ($_SESSION['user']['uloga'] === 'administrator') : ?>
                         <li class="list-group-item">
                             <a href="korisnici.php">Korisnici</a>
                         </li>
-                    <?php elseif ($_SESSION['user']['uloga'] === 'autor'): ?>
-                        <li class="list-group-item">
-                            <a href="deaktiviraj_racun.php" onclick="return confirm('Jeste li sigurni da želite deaktivirati svoj račun?');">Deaktiviraj račun</a>
-                        </li>
                     <?php endif; ?>
                     <li class="list-group-item">
+                        <a href="index.php?deaktiviraj_racun&id=<?= $_SESSION['user']['id'] ?>" onclick="return confirm('Jeste li sigurni da želite deaktivirati svoj račun?');">Deaktiviraj moj račun</a>
+                    </li>
+                    <li class="list-group-item">
                         <a href="logout.php">Odjava</a>
-                    </li
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
